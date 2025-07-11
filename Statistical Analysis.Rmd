@@ -1,0 +1,74 @@
+---
+title: "Domaci1"
+author: "Tijana Ignjatov"
+date: "2025-05-04"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)   
+library(readxl)      
+library(ggplot2)     
+
+```
+
+## R Markdown
+
+Učitavanje podataka 
+```{r}
+podaci <- readxl::read_excel("C:/Users/tijan/Downloads/Domaci1.xlsx")
+
+head(podaci)
+str(podaci)
+summary(podaci)
+names(podaci)
+
+
+```
+```{r}
+colnames(podaci) <- c("godiste", "pol", "pregled", "kontrola60", "kontrola90")
+
+```
+
+Testiranje normalnosti
+```{r}
+shapiro.test(podaci$pregled)
+shapiro.test(podaci$kontrola60)
+shapiro.test(podaci$kontrola90)
+
+
+
+```
+```{r}
+wilcox.test(podaci$pregled, podaci$kontrola60, paired = TRUE, exact = FALSE)
+wilcox.test(podaci$pregled, podaci$kontrola90, paired = TRUE, exact = FALSE)
+wilcox.test(podaci$kontrola60, podaci$kontrola90, paired = TRUE, exact = FALSE)
+
+```
+
+
+```{r}
+
+library(tidyr)
+library(dplyr)
+
+podaci_long <- podaci %>%
+  select(pregled, kontrola60, kontrola90) %>%
+  rename(`1 Pregled` = pregled, `Kontrola 60` = kontrola60, `Kontrola 90` = kontrola90) %>%
+  pivot_longer(cols = everything(), names_to = "Faza", values_to = "Skor")
+
+
+ggplot(podaci_long, aes(x = Faza, y = Skor, fill = Faza)) +
+  geom_boxplot() +
+  theme_minimal() +
+  labs(title = "Promena skora kroz faze tretmana", y = "Skor")
+
+```
+
+Na osnovu Wilcoxon testa (p < 0.001), uočeno je statistički značajno poboljšanje skora između početnog pregleda i naknadnih kontrola. Vizualizacija dodatno potvrđuje uzlazni trend, što ukazuje da lek ima pozitivan efekat tokom vremena.
+
+Boxplot jasno ilustruje postepeno povećanje skora kroz tri faze tretmana. Medijana skora se povećava od inicijalne vrednosti (~21) do kontrola nakon 30 (~22) i 90 dana (~23.5), što ukazuje na pozitivan terapijski efekat leka. Takođe, širenje raspodele i položaj outliera dodatno potvrđuju razliku u ishodima između faza.
+
+Zaključak: Svi sprovedeni testovi ukazuju na značajno povećanje skora tokom 90 dana, što sugeriše efikasnost leka. Pošto podaci nisu normalno distribuirani, korišćen je Wilcoxonov test.
+ 
