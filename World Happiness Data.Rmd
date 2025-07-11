@@ -1,0 +1,120 @@
+---
+title: "Domaci2"
+author: "Tijana Ignjatov"
+date: "2025-05-04"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+## R Markdown
+Ušitavanje podataka
+
+```{r}
+happiness <- read_csv("C:/Users/tijan/Downloads/archive (1)/2019.csv", show_col_types = FALSE)
+
+```
+
+Deo 1. - Vizuelizacija 
+
+```{r}
+top10 <- happiness %>%
+  arrange(desc(Score)) %>%
+  slice(1:10)
+
+ggplot(top10, aes(x = reorder(`Country or region`, Score), y = Score)) +
+  geom_col(fill = "steelblue") +
+  coord_flip() +
+  labs(title = "Top 10 najsrećnijih zemalja (2019)", x = "Zemlja", y = "Indeks sreće")
+```
+
+
+```{r}
+ggplot(happiness, aes(x = `GDP per capita`, y = Score)) +
+  geom_point(color = "darkgreen") +
+  geom_smooth(method = "lm", se = FALSE, color = "black") +
+  labs(title = "Indeks sreće u odnosu na BDP po glavi", 
+       x = "BDP po glavi", 
+       y = "Indeks sreće")
+
+
+```
+```{r}
+happiness_regions <- happiness %>%
+  filter(`Country or region` %in% c("Finland", "Denmark", "Norway", "Iceland", "Netherlands",
+                                    "Switzerland", "Sweden", "New Zealand", "Canada", "Austria",
+                                    "Australia", "Costa Rica", "Israel", "Luxembourg", "United Kingdom",
+                                    "Ireland", "Germany", "Belgium", "United States", "Czech Republic")) %>%
+  mutate(Region = case_when(
+    `Country or region` %in% c("Finland", "Denmark", "Norway", "Iceland", "Sweden") ~ "Northern Europe",
+    `Country or region` %in% c("Netherlands", "Belgium", "United Kingdom", "Ireland") ~ "Western Europe",
+    `Country or region` %in% c("Switzerland", "Austria", "Germany", "Luxembourg") ~ "Central Europe",
+    `Country or region` == "United States" ~ "North America",
+    `Country or region` == "Canada" ~ "North America",
+    `Country or region` == "New Zealand" ~ "Oceania",
+    `Country or region` == "Australia" ~ "Oceania",
+    `Country or region` == "Costa Rica" ~ "Latin America",
+    `Country or region` == "Israel" ~ "Middle East",
+    `Country or region` == "Czech Republic" ~ "Eastern Europe"
+  ))
+
+ggplot(happiness_regions, aes(x = Region, y = Score, fill = Region)) +
+  geom_boxplot() +
+  labs(title = "Raspodela indeksa sreće po regionima", x = "Region", y = "Indeks sreće") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+```
+Deo 2. - Poređenje dve zemlje 
+
+```{r}
+zemlje <- happiness %>%
+  filter(`Country or region` %in% c("Finland", "South Sudan")) %>%
+  select(`Country or region`, Score, `GDP per capita`, `Healthy life expectancy`,
+         `Freedom to make life choices`, Generosity, `Social support`, `Perceptions of corruption`) %>%
+  rename(Zemlja = `Country or region`,
+         Sreća = Score,
+         BDP = `GDP per capita`,
+         Zdravlje = `Healthy life expectancy`,
+         Sloboda = `Freedom to make life choices`,
+         Velikodušnost = Generosity,
+         Podrška = `Social support`,
+         Poverenje = `Perceptions of corruption`)
+
+zemlje
+
+```
+
+
+```{r}
+zemlje_long <- zemlje %>%
+  pivot_longer(cols = -Zemlja, names_to = "Pokazatelj", values_to = "Vrednost")
+
+ggplot(zemlje_long, aes(x = Pokazatelj, y = Vrednost, fill = Zemlja)) +
+  geom_col(position = "dodge") +
+  labs(title = "Poređenje faktora sreće: Finska vs. Južni Sudan",
+       x = "Pokazatelj", y = "Vrednost") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+Finska ima znatno viši indeks sreće (7.769) u poređenju sa Južnim Sudanom (2.853), što je vidljivo i u svim pratećim faktorima. Finska prednjači u BDP-u, zdravlju, slobodi, podršci i poverenju. Južni Sudan ima naročito niske vrednosti u slobodi i poverenju, što može ukazivati na političku nestabilnost. Iako je velikodušnost viša u Južnom Sudanu, to nije dovoljno da kompenzuje ostale faktore koji utiču na opštu sreću.
+
+
+
+Deo 3. 
+
+
+Koji faktori su, prema vašem mišljenju, najviše povezani sa indeksom sreće?
+
+Na osnovu scatter plota i poređenja Finske i Južnog Sudana, deluje da je BDP po glavi jedan od ključnih faktora povezanih sa indeksom sreće – zemlje sa višim BDP-om u proseku imaju viši nivo sreće. Osim ekonomskog faktora, pokazalo se i da zdravlje i podrška igraju značajnu ulogu u tome koliko su ljudi zadovoljni svojim životom. Sloboda izbora i poverenje takođe doprinose osećaju sreće, ali njihov uticaj je nešto manji u poređenju sa prethodnim faktorima.
+
+
+Koja vizualizacija je po vašem mišljenju najbolje prenela poruku, i zašto?
+
+Najveći utisak ostavlja scatter plot koji prikazuje vezu između BDP-a po glavi i indeksa sreće. Na njemu se jasno vidi pozitivan trend – kako raste BDP, tako raste i nivo sreće u zemlji. Ova vizualizacija je posebno efektna jer odmah daje jasnu sliku o povezanosti bogatstva i kvaliteta života.
+
+
